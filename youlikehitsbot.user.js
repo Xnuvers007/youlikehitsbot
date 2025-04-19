@@ -179,7 +179,7 @@
                                     /*window.close(); //might not always work in FF
                                     setTimeout (window.close, 1000);*/
                                 });
-                            } else if (J("*:contains('viewing websites too quickly! Please wait')").length) location.reload();
+                            } else if (J("body:contains('viewing websites too quickly!')").length) location.reload();
                         } else alert("Please reload the website list, and make sure you are still logged in.");
                         break;
                 }

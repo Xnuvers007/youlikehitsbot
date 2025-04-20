@@ -43,7 +43,7 @@
       // second iframe takes remaining space
       // calculate height in pixels: window height minus top iframe height
       const winHeight = window.innerHeight;
-      iframe.height = winHeight - parseInt(firstHeight, 10) - 25; //minus an additional estimate to hide scrollbars (there's possibly some error in the prior calculation)
+      iframe.height = winHeight - parseInt(firstHeight, 10) - 25; //minus an additional 10 to hide scrollbars (there's possibly some error in the prior calculation)
     
       // MOST restrictive sandbox (toggle by changing the value here)
       const sandboxLevel = 2; // Change this to 0, 1, or 2, for different levels
@@ -85,7 +85,7 @@
         solveCaptcha = (imageEl, outputEl, captchaIdentifier, callback = () => {}) => {
             if (window[captchaIdentifier] == undefined) {
                 window[captchaIdentifier] = true; //solving takes some time, so we'll lock a duplicate solver instance out
-                let note = attachNotification(imageEl, "Please wait while your captcha is being solved. Don't worry if the code does not seem to match; that's because a new captcha image has been generated!");
+                let note = attachNotification("Please wait while your captcha is being solved. Don't worry if the code does not seem to match; that's because a new captcha image has been generated!");
                 Tesseract.recognize(J(imageEl).attr("src")).then(equation => {
                     var formula = equation.text;
                     if (formula.length = 3) {//the exact length of the fomula
@@ -104,12 +104,24 @@
             }
         }
     
-        const attachNotification = (identifier, notification) => {
-            //IDEA: turn it into a nice(r) GUI with an ID to check more efficiently for duplicates
-            const el = "<p style='color: red;'>Bot says: <i>" + notification + "</i></p>";
-            const prevEl = J(identifier).prev()[0];
-            if (prevEl == undefined || !prevEl.innerText.includes(notification))
-               return J(el).insertBefore(identifier);
+        function attachNotification(message) {
+          const notificationEl = document.createElement('div');
+          notificationEl.textContent = message;
+          Object.assign(notificationEl.style, {
+            position:    'fixed',
+            top:         '0.5rem',
+            left:        '50%',
+            transform:   'translateX(-50%)',
+            padding:     '0.25rem 0.5rem',
+            background:  '#fff',
+            color:       'red',
+            whiteSpace:  'nowrap',
+            zIndex:      '9999',
+            cursor:      'pointer'
+          });
+          // remove on click
+          notificationEl.addEventListener('click', () => notificationEl.remove());
+          document.body.appendChild(notificationEl);
         }
     
         const removeNotification = (el) => {
@@ -130,6 +142,14 @@
             }
         }
     
+        const queueReload = (loopToCancel) => {
+          const reloadDelay = randomSeconds(60, 60 * 5);
+          attachNotification("Reloading the website in ~" + Math.round(reloadDelay / 1000 / 60) + " minutes to check again...");
+          //IDEA: if we introduce a message param, also run console.log for it.
+          setTimeout(() => location.reload(), reloadDelay);
+          clearInterval(loopToCancel); //no further checks since we gotta reload anyway
+        }
+    
         //runtime vars
         let previousVideo = "";
         /** indicates if a warning/message has already been shown. Happens once per window. Use alertOnce() */
@@ -147,22 +167,19 @@
             } else {
                     switch (document.location.pathname) {
                         case "/login.php":
-                            if (!J("#password").val().length) attachNotification("#username", "Consider storing your login data in your browser.")
+                            if (!J("#password").val().length) attachNotification("Consider storing your login data in your browser.")
                             const captcha = J("img[alt='Enter The Numbers']");
                             if (captcha.length)
                                 solveCaptcha(captcha[0], J("input[name='postcaptcha']"), "ylh_login_captchasolving");
                             break;
                         case "/bonuspoints.php":
                             if (J("body:contains('You have made ')").length && J("body:contains(' Hits out of ')").length) {
-                                const reloadDelay = randomSeconds(60, 60 * 5);
-                                attachNotification(".maintable", "Not enough points. Reloading the website in " + Math.round(reloadDelay / 1000 / 60) + " minutes to check again...");
-                                setTimeout(() => location.reload(), reloadDelay);
-                                clearInterval(mainLoop); //no further checks since we gotta reload anyway
+                              queueReload(mainLoop)
                             } else if (J(".buybutton").length) J(".buybutton")[0].click()
                             break;
                         case "/soundcloudplays.php":
                              //no timer visible / no song currently playing?
-                            if (!J(".maintable span[id*='count']").attr("style").includes("display:none;")) return attachNotification(".maintable", "Music already playing..."); //TODO: detect timers that do not update
+                            if (!J(".maintable span[id*='count']").attr("style").includes("display:none;")) return attachNotification("Music already playing..."); //TODO: detect timers that do not update
                             if (J(".followbutton").length) {
                                 J(".followbutton").first().click();
                             } else alert("no followbutton, fix this pls");
@@ -197,7 +214,8 @@
                     switch (document.location.pathname) {
                         case "/websites.php":
                             if (J("*:contains('There are no Websites currently visitable for Points')").length) {
-                                alertOnce("All websites were visited. Revisit/reload the page to start surfing again.")
+                              console.log("All websites were visited. Revisit/reload the page to start surfing again.")
+                              queueReload(mainLoop)
                             } else {
                                 if (!tabState && window.eval("typeof(window.childWindow) !== 'undefined'")) {
                                     if (!childWindow.closed)
@@ -217,7 +235,7 @@
                                     } else {
                                     }
                                 } else {
-                                    console.log("We ran out of buttons! requesting more...");
+                                    console.log("We ran out of buttons (=websites to visit)! requesting more...");
                                     //GM.getValue("ylh_traffic_reloadlimit", false).then(rlimit => {
                                     if (window.eval("typeof(window.childWindow) !== 'undefined'") && childWindow.closed) //without this we would not wait for the last link of the page to be visited successfully
                                         location.reload();

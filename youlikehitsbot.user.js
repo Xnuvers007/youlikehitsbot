@@ -43,7 +43,7 @@
       // second iframe takes remaining space
       // calculate height in pixels: window height minus top iframe height
       const winHeight = window.innerHeight;
-      iframe.height = winHeight - parseInt(firstHeight, 10) - 10; //minus an additional 10 to hide scrollbars (there's possibly some error in the prior calculation)
+      iframe.height = winHeight - parseInt(firstHeight, 10) - 25; //minus an additional estimate to hide scrollbars (there's possibly some error in the prior calculation)
     
       // MOST restrictive sandbox (toggle by changing the value here)
       const sandboxLevel = 2; // Change this to 0, 1, or 2, for different levels

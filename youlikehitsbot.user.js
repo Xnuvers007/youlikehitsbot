@@ -15,7 +15,6 @@
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js
-// @require      https://greasemonkey.github.io/gm4-polyfill/gm4-polyfill.js
 // @require      https://cdn.jsdelivr.net/gh/naptha/tesseract.js/dist/tesseract.min.js
 // @run-at       document-start
 // ==/UserScript==

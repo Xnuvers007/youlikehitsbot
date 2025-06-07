@@ -126,7 +126,7 @@
                                         J(".followbutton").parent().children("a:contains('Skip')").click();
                                         if (typeof(newWin) !== "undefined") newWin.close();
                                     }
-                                }, 1000 * 135); // max time: 120s + 15s grace time
+                                }, 1000 * 230); // max time: 120s + 15s grace time -> change become 230 because when get timer 203 it will skip :) logic error
                             };
 
                             if (vidID() != previousVideo) { // has a new video been provided?

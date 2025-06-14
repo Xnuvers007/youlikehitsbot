@@ -109,6 +109,11 @@
                             J(".followbutton").first().click();
                         } else alert("no followbutton, fix this pls");
                     case "/youtubenew2.php":
+                        if (J("#listall:contains('There are no videos available to view at this time')").length) {
+                            console.log("No videos available. Reloading page...");
+                            setTimeout(() => location.reload(), 3000); // refresh setelah 3 detik
+                            return;
+                        }
                         if (J('body:contains("failed")').length) location.reload(); //captcha failed?
                         if (J(".followbutton").length) { // if false, there is likely a captcha waiting to be solved
                             let vidID = () => {
